@@ -35,7 +35,7 @@ public class PtpTester {
 
 
     public static void main(String[] args) throws Exception {
-        InetAddress ip = InetAddress.getByName("192.168.2.1");  // adjust IP
+        InetAddress ip = InetAddress.getByName("192.168.2.1:15740");  // adjust IP
         if (args.length > 0) ip = InetAddress.getByName(args[0]);
 
         System.out.print("Initialise: ");
