@@ -29,13 +29,13 @@ import java.net.InetAddress;
 public class PtpTester {
 
     private static final short[] guid = new short[] {
-            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+            0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
     }; // adjust MAC
-    private static final String friendlyName = "MyName.name";
+    private static final String friendlyName = "testi";
 
 
     public static void main(String[] args) throws Exception {
-        InetAddress ip = InetAddress.getByName("192.168.1.50");  // adjust IP
+        InetAddress ip = InetAddress.getByName("192.168.1.2");  // adjust IP
         if (args.length > 0) ip = InetAddress.getByName(args[0]);
 
         System.out.print("Initialise: ");
