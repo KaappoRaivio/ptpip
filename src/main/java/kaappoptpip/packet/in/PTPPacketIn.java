@@ -20,6 +20,18 @@ abstract public class PTPPacketIn {
         switch (type) {
             case INIT_COMMAND_ACKNOWLEDGEMENT:
                 return new PTPTPacketInitAcknowledgement(packetContent);
+            case INIT_EVENT_ACKNOWLEDGEMENT:
+                return new PTPPacketInitEventAcknowledgement(packetContent);
+            case PONG:
+                return new PTPPacketPong(packetContent);
+            case CMD_RESPONSE:
+                return new PTPPacketCmdResponse(packetContent, packetContent.getStreamLength());
+            case START_DATA_PACKET:
+                return new PTPPacketInStartData(packetContent);
+            case DATA_PACKET:
+                return new PTPPacketInData(packetContent);
+            case END_DATA_PACKET:
+                return new PTPPacketInEndData(packetContent);
             default:
                 return new PTPDebugPacket(type, packetContent);
         }
@@ -28,6 +40,17 @@ abstract public class PTPPacketIn {
     public boolean isSuitableForRepresenting (int packetType) {
         return this.packetType.getPayload() == packetType;
     }
+
+    public boolean startsTransactionResponse() {
+        return false;
+    }
+    public boolean endsTransactionResponse() {
+        return false;
+    }
+
+    public boolean isPartOfTransaction () {
+        return false;
+    };
 
     abstract public int size ();
 }

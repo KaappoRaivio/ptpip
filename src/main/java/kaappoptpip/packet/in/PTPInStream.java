@@ -9,17 +9,33 @@ import java.nio.CharBuffer;
 
 public class PTPInStream {
     private InputStream realInputStream;
+    private int streamLength;
     private ByteBuffer buffer;
 
     public PTPInStream (InputStream inputStream) {
         this.realInputStream = inputStream;
-        buffer = ByteBuffer.allocate(4);
+        try {
+            this.streamLength = inputStream.available();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        buffer = ByteBuffer.allocate(8);
         buffer.order(ByteOrder.LITTLE_ENDIAN);
     }
 
     public byte[] readAllBytes () {
         try {
             return realInputStream.readAllBytes();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public long readUInt64() {
+        try {
+            buffer.position(0);
+            buffer.put(realInputStream.readNBytes(8));
+            return buffer.getLong(0);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -97,4 +113,9 @@ public class PTPInStream {
             throw new RuntimeException(e);
         }
     }
+
+    public int getStreamLength() {
+        return streamLength;
+    }
+
 }

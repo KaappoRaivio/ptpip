@@ -2,8 +2,8 @@ package kaappoptpip.packet.in;
 
 import kaappoptpip.packet.PTPPacketType;
 
-public class PTPInitEventAcknowledgement extends PTPPacketIn{
-    protected PTPInitEventAcknowledgement(PTPInStream packetContent) {
+public class PTPPacketInitEventAcknowledgement extends PTPPacketIn{
+    protected PTPPacketInitEventAcknowledgement(PTPInStream packetContent) {
         super(PTPPacketType.INIT_EVENT_ACKNOWLEDGEMENT, packetContent);
     }
 

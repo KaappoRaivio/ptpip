@@ -35,7 +35,13 @@ public class MyPTP {
             System.out.println(response);
         }
 
-        commandConnection.writePacket(new PTPPacketCmdRequest(0x1002, 1, 0));
+        commandConnection.writePacket(new PTPPacketCmdRequest(PTPPacketCmdRequest.OpCodes.GET_DEVICE_INFO, 1, 0));
+        responses = commandConnection.getPackets();
+        for (PTPPacketIn response : responses) {
+            System.out.println(response);
+        }
+
+        commandConnection.writePacket(new PTPPacketCmdRequest(PTPPacketCmdRequest.OpCodes.OPEN_SESSION, 1, 1));
         responses = commandConnection.getPackets();
         for (PTPPacketIn response : responses) {
             System.out.println(response);

@@ -3,6 +3,9 @@ package kaappoptpip.connection;
 import kaappoptpip.misc.ByteUtils;
 import kaappoptpip.packet.in.PTPInStreamReader;
 import kaappoptpip.packet.in.PTPPacketIn;
+import kaappoptpip.packet.in.PTPDataPacketIn;
+import kaappoptpip.packet.in.PTPPacketInStartData;
+import kaappoptpip.packet.out.PTPPacketCmdRequest;
 import kaappoptpip.packet.out.PTPPacketOut;
 
 import java.io.*;
@@ -14,12 +17,15 @@ public class PTPConnection {
     private Socket socket;
     private OutputStream connectionOut;
     private PTPInStreamReader connectionIn;
+    private PTPTransactionManager transactionManager;
 
     public PTPConnection(String cameraAddress) throws IOException {
         socket = new Socket(cameraAddress, 15740);
         connectionOut = socket.getOutputStream();
         connectionIn = new PTPInStreamReader(socket.getInputStream());
         connectionIn.start();
+
+        transactionManager = new PTPTransactionManager();
     }
 
     public void writePacket (PTPPacketOut packet) {
@@ -29,10 +35,13 @@ public class PTPConnection {
         try {
             connectionOut.write(proxy.toByteArray());
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
 
-
+        if (packet.startsTransaction()) {
+            PTPPacketCmdRequest cast = (PTPPacketCmdRequest) packet;
+            transactionManager.startTransaction(cast.getTransactionID(), cast);
+        }
     }
 
     public List<PTPPacketIn> getPackets () {
@@ -43,7 +52,29 @@ public class PTPConnection {
                 e.printStackTrace();
             }
 
-            return connectionIn.getPackets().stream().map(packet -> PTPPacketIn.getPacket(packet.readUInt32(), packet)).collect(Collectors.toList());
+            List<PTPPacketIn> packets = connectionIn.getPackets().stream().map(packet -> PTPPacketIn.getPacket(packet.readUInt32(), packet)).collect(Collectors.toList());
+
+            for (PTPPacketIn packet : packets) {
+                if (packet.startsTransactionResponse()) {
+                    System.out.println("Starting transaction");
+                    PTPPacketInStartData ptpPacketInStartData = (PTPPacketInStartData) packet;
+                    transactionManager.addDataToTransaction(ptpPacketInStartData.getTransactionID(), ptpPacketInStartData);
+                } else if (packet.isPartOfTransaction()) {
+                    PTPDataPacketIn cast = (PTPDataPacketIn) packet;
+                    transactionManager.addDataToTransaction(cast.getTransactionID(), cast);
+                } else if (packet.endsTransactionResponse()) {
+                    System.out.println("Ending transaction");
+                    PTPDataPacketIn cast = (PTPDataPacketIn) packet;
+                    transactionManager.addDataToTransaction(cast.getTransactionID(), cast);
+
+                    if (transactionManager.haveTransactionsCompleted()) {
+                        System.out.println("COMPLETED TRANSACTION!!!!!!!!!!!!!!!!!!!!");
+                        System.out.println(transactionManager.getCompleteTransactions());
+                    }
+                }
+            }
+
+            return packets;
         }
     }
 }
