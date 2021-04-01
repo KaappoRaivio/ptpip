@@ -101,6 +101,7 @@ public class PtpTester {
 //
 //        System.out.println("Initiate capture:");
 //        session.initiateCapture();
+
 //        System.out.println("--> success");
 
         connection.close();

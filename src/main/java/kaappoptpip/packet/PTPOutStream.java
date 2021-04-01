@@ -3,6 +3,7 @@ package kaappoptpip.packet;
 import java.io.OutputStream;
 
 public interface PTPOutStream extends Writeable {
+    void writeUInt64(long uploadSize);
     void writeUInt32 (int data);
     void writeUInt16 (int data);
     void writeUInt8 (int data);
@@ -16,4 +17,5 @@ public interface PTPOutStream extends Writeable {
     void writeShorts(short[] shorts);
 
     int getSize ();
+
 }

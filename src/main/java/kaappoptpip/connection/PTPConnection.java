@@ -5,8 +5,11 @@ import kaappoptpip.packet.in.PTPInStreamReader;
 import kaappoptpip.packet.in.PTPPacketIn;
 import kaappoptpip.packet.in.PTPDataPacketIn;
 import kaappoptpip.packet.in.PTPPacketInStartData;
-import kaappoptpip.packet.out.PTPPacketCmdRequest;
-import kaappoptpip.packet.out.PTPPacketOut;
+import kaappoptpip.packet._out.PTPPacketCmdRequest;
+import kaappoptpip.packet._out.PTPPacketOut;
+import kaappoptpip.transaction.CompletedPTPTransaction;
+import kaappoptpip.transaction.PTPTransactionDataParser;
+import kaappoptpip.transaction.PTPTransactionManager;
 
 import java.io.*;
 import java.net.Socket;
@@ -44,12 +47,18 @@ public class PTPConnection {
         }
     }
 
-    public List<PTPPacketIn> getPackets () {
+    public List<PTPPacketIn> getPackets() {
+        return getPackets(true, -1);
+    }
+
+    public List<PTPPacketIn> getPackets (boolean block, int transactionID) {
         synchronized (connectionIn.lock) {
-            try {
-                connectionIn.lock.wait();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+            if (block) {
+                try {
+                    connectionIn.lock.wait();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
 
             List<PTPPacketIn> packets = connectionIn.getPackets().stream().map(packet -> PTPPacketIn.getPacket(packet.readUInt32(), packet)).collect(Collectors.toList());
@@ -69,7 +78,8 @@ public class PTPConnection {
 
                     if (transactionManager.haveTransactionsCompleted()) {
                         System.out.println("COMPLETED TRANSACTION!!!!!!!!!!!!!!!!!!!!");
-                        System.out.println(transactionManager.getCompleteTransactions());
+                        List<CompletedPTPTransaction> completeTransactions = transactionManager.getCompleteTransactions();
+                        completeTransactions.forEach(PTPTransactionDataParser::parseTransactionData);
                     }
                 }
             }

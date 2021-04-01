@@ -1,10 +1,10 @@
-package kaappoptpip.connection;
+package kaappoptpip.transaction;
 
 import kaappoptpip.packet.in.PTPDataPacketIn;
 import kaappoptpip.packet.in.PTPInStream;
 import kaappoptpip.packet.in.PTPPacketInEndData;
 import kaappoptpip.packet.in.PTPPacketInStartData;
-import kaappoptpip.packet.out.PTPPacketCmdRequest;
+import kaappoptpip.packet._out.PTPPacketCmdRequest;
 
 import java.io.ByteArrayInputStream;
 import java.nio.ByteBuffer;

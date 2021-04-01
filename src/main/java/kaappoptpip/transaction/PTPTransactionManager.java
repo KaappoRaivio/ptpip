@@ -1,8 +1,8 @@
-package kaappoptpip.connection;
+package kaappoptpip.transaction;
 
 import kaappoptpip.packet.in.PTPDataPacketIn;
 import kaappoptpip.packet.in.PTPPacketInStartData;
-import kaappoptpip.packet.out.PTPPacketCmdRequest;
+import kaappoptpip.packet._out.PTPPacketCmdRequest;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 public class PTPTransactionManager {
-    private Map<Integer, PTPTransaction> transactions;
+    private final Map<Integer, PTPTransaction> transactions;
     private List<CompletedPTPTransaction> completeTransactions;
 
 //    public static final Object lock = new Object();

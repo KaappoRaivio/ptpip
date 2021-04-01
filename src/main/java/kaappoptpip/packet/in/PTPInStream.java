@@ -6,6 +6,8 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.CharBuffer;
+import java.util.ArrayList;
+import java.util.List;
 
 public class PTPInStream {
     private InputStream realInputStream;
@@ -71,9 +73,17 @@ public class PTPInStream {
         }
     }
 
-    public String readWChar () {
+    public String readWChar() {
+        return readWChar(false);
+    }
+
+    public String readWChar (boolean hasSizeHeader) {
         try {
-            CharBuffer textBuffer = CharBuffer.allocate(1024);
+            int expectedLength = 1024;
+            if (hasSizeHeader) {
+                expectedLength = readUInt8();
+            }
+            CharBuffer textBuffer = CharBuffer.allocate(expectedLength);
             int length = 0;
             while (true) {
                 int value = readUInt16();
@@ -118,4 +128,15 @@ public class PTPInStream {
         return streamLength;
     }
 
+    public List<Integer> readArrayOfUInt16() {
+        List<Integer> list = new ArrayList<>();
+
+        int arrayLength = readUInt32();
+
+        for (int i = 0; i < arrayLength; i++) {
+            list.add(readUInt16());
+        }
+
+        return list;
+    }
 }

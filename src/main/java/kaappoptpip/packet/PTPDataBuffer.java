@@ -21,6 +21,11 @@ public class PTPDataBuffer implements PTPOutStream {
 
 
     @Override
+    public void writeUInt64(long data) {
+        new PTPDataType.UInt64t(data).writeTo(outputStream);
+    }
+
+    @Override
     public void writeUInt32(int data) {
         new PTPDataType.UInt32t(data).writeTo(outputStream);
     }

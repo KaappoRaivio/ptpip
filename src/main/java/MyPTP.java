@@ -1,11 +1,8 @@
 import kaappoptpip.connection.PTPConnection;
 import kaappoptpip.packet.PTPPacketType;
+import kaappoptpip.packet._out.*;
 import kaappoptpip.packet.in.PTPPacketIn;
 import kaappoptpip.packet.in.PTPTPacketInitAcknowledgement;
-import kaappoptpip.packet.out.PTPPacketCmdRequest;
-import kaappoptpip.packet.out.PTPPacketEventInit;
-import kaappoptpip.packet.out.PTPPacketInit;
-import kaappoptpip.packet.out.PTPPacketPing;
 
 import java.io.*;
 import java.util.List;
@@ -35,17 +32,55 @@ public class MyPTP {
             System.out.println(response);
         }
 
-        commandConnection.writePacket(new PTPPacketCmdRequest(PTPPacketCmdRequest.OpCodes.GET_DEVICE_INFO, 1, 0));
+        commandConnection.writePacket(new PTPPacketCmdRequest(PTPPacketCmdRequest.OpCodes.GET_DEVICE_INFO, 0));
         responses = commandConnection.getPackets();
         for (PTPPacketIn response : responses) {
             System.out.println(response);
         }
 
-        commandConnection.writePacket(new PTPPacketCmdRequest(PTPPacketCmdRequest.OpCodes.OPEN_SESSION, 1, 1));
+        commandConnection.writePacket(new PTPPacketCmdRequest(PTPPacketCmdRequest.OpCodes.OPEN_SESSION, 1, List.of(1)));
+        responses = commandConnection.getPackets(true, 1);
+        for (PTPPacketIn response : responses) {
+            System.out.println(response);
+        }
+        System.out.println("Sleeping");
+        Thread.sleep(1000);
+        System.out.println("Sleeped");
+
+
+//        System.out.println("Trying to set capture mode");
+//        commandConnection.writePacket(new PTPPacketCmdRequest(PTPPacketCmdRequest.OpCodes.SET_DEVICE_PROP_VALUE, 2, List.of(0x5013)));
+//        PTPPacketOut.packageData(2, new byte[]{0x11, (byte) 0x80}).forEach(commandConnection::writePacket);
+//        responses = commandConnection.getPackets();
+//        for (PTPPacketIn response : responses) {
+//            System.out.println(response);
+//        }
+
+
+//        System.out.println("Trying to start live view");
+//        commandConnection.writePacket(new PTPPacketCmdRequest(PTPPacketCmdRequest.OpCodes.START_LIVE_VIEW,2));
+//        responses = commandConnection.getPackets();
+//        for (PTPPacketIn response : responses) {
+//            System.out.println(response);
+//        }
+
+        System.out.println("Trying to initiate capture");
+        commandConnection.writePacket(new PTPPacketCmdRequest(PTPPacketCmdRequest.OpCodes.INITIATE_CAPTURE, 2, List.of(0, 0)));
         responses = commandConnection.getPackets();
         for (PTPPacketIn response : responses) {
             System.out.println(response);
         }
+//
+//        System.out.println("Closing session");
+//        commandConnection.writePacket(new PTPPacketCmdRequest(PTPPacketCmdRequest.OpCodes.CLOSE_SESSION, 4, List.of(0, 0)));
+//        responses = commandConnection.getPackets();
+//        for (PTPPacketIn response : responses) {
+//            System.out.println(response);
+//        }
+//        System.exit(0);
+
+
+//        eventConnection.getPackets(false).forEach(System.out::println);
 
 
         while (true) {

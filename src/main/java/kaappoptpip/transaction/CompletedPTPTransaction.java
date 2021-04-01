@@ -1,7 +1,7 @@
-package kaappoptpip.connection;
+package kaappoptpip.transaction;
 
 import kaappoptpip.packet.in.PTPInStream;
-import kaappoptpip.packet.out.PTPPacketCmdRequest;
+import kaappoptpip.packet._out.PTPPacketCmdRequest;
 
 public class CompletedPTPTransaction {
     private int transactionID;
