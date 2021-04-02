@@ -26,7 +26,12 @@ public class PTPPacketCmdResponse extends PTPPacketIn {
     }
 
     @Override
-    public int size() {
+    public int size () {
         return streamLength;
+    }
+
+    @Override
+    public int getTransactionID () {
+        return transactionID;
     }
 }

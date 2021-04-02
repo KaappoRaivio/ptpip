@@ -14,7 +14,7 @@ public interface PTPOutStream extends Writeable {
     }
 
     void writeBytes(byte[] bytes);
-    void writeShorts(short[] shorts);
+    void writeShortsAsBytes(short[] shorts);
 
     int getSize ();
 

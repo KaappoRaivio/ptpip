@@ -1,5 +1,7 @@
 package kaappoptpip.packet.in;
 
+import kaappoptpip.misc.ByteUtils;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -103,7 +105,20 @@ public class PTPInStream {
 
     public byte[] readBytes (int amount) {
         try {
-            return realInputStream.readNBytes(amount);
+            ByteBuffer buffer = ByteBuffer.allocate(amount);
+
+            int bytesRead = 0;
+            int timesIterated = 0;
+            while (bytesRead < amount) {
+                byte[] bytes = realInputStream.readNBytes(amount);
+                bytesRead += bytes.length;
+                buffer.put(bytes);
+
+                if (timesIterated++ > 10) {
+                    throw new RuntimeException("Stream closed!");
+                }
+            }
+            return buffer.array();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

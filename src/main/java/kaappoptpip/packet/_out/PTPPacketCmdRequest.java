@@ -15,6 +15,7 @@ public class PTPPacketCmdRequest extends PTPPacketOut {
         public static final int START_LIVE_VIEW = 0x9201;
         public static final int AF_DRIVE = 0x90C1;
         public static final int INITIATE_CAPTURE = 0x100E;
+        public static final int GET_DEVICE_PROP_VALUE = 0x1015;
         public static final int SET_DEVICE_PROP_VALUE = 0x1016;
         public static final int CLOSE_SESSION = 0x1003;
     }
@@ -46,12 +47,17 @@ public class PTPPacketCmdRequest extends PTPPacketOut {
         return true;
     }
 
+    @Override
     public int getTransactionID () {
         return transactionID;
     }
 
     public int getOperationCode () {
         return operationCode;
+    }
+
+    public List<Integer> getParameters() {
+        return parameters;
     }
 
     @Override

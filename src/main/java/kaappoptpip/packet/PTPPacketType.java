@@ -3,6 +3,9 @@ package kaappoptpip.packet;
 import kaappoptpip.packet.in.PTPPacketIn;
 
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 
 public enum PTPPacketType {
 
@@ -20,6 +23,21 @@ public enum PTPPacketType {
     END_DATA_PACKET,
     PING,
     PONG;
+
+    public static Set<PTPPacketType> getPossibleResponseTypes (PTPPacketType requestType) {
+        switch (requestType) {
+            case INIT_COMMAND_REQUEST:
+                return Set.of(INIT_COMMAND_ACKNOWLEDGEMENT, INIT_FAIL);
+            case INIT_EVENT_REQUEST:
+                return Set.of(INIT_EVENT_ACKNOWLEDGEMENT, INIT_FAIL);
+            case CMD_REQUEST:
+                return Set.of(CMD_RESPONSE, CANCEL_TRANSACTION);
+            case PING:
+                return Collections.singleton(PONG);
+            default:
+                throw new RuntimeException("Not applicable to " + requestType + "!");
+        }
+    }
 
     private Class<? extends PTPPacketIn> packetClass;
     public int getPayload () {

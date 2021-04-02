@@ -19,7 +19,7 @@ abstract public class PTPPacketIn {
 
         switch (type) {
             case INIT_COMMAND_ACKNOWLEDGEMENT:
-                return new PTPTPacketInitAcknowledgement(packetContent);
+                return new PTPTPacketInitCommandAcknowledgement(packetContent);
             case INIT_EVENT_ACKNOWLEDGEMENT:
                 return new PTPPacketInitEventAcknowledgement(packetContent);
             case PONG:
@@ -53,4 +53,9 @@ abstract public class PTPPacketIn {
     };
 
     abstract public int size ();
+
+    public int getTransactionID () {
+        return -1;
+    };
+
 }

@@ -10,8 +10,9 @@ abstract public class PTPDataPacketOut extends PTPPacketOut {
     public long getAmountOfDataBytesInPacket () {
         return 0;
     };
+    @Override
     public int getTransactionID () {
-        return 0;
+        return -1;
     };
     public byte[] getData() {
         return new byte[0];

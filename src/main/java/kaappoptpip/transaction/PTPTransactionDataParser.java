@@ -12,6 +12,8 @@ public class PTPTransactionDataParser {
         switch (opCode) {
             case PTPPacketCmdRequest.OpCodes.GET_DEVICE_INFO:
                 return parseDeviceInfoDataset(transaction);
+            case PTPPacketCmdRequest.OpCodes.GET_DEVICE_PROP_VALUE:
+                return parseDevicePropValue(transaction);
             default:
                 throw new RuntimeException("Unknown reponse type " + transaction + "!");
         }
@@ -56,6 +58,19 @@ public class PTPTransactionDataParser {
         System.out.println(model);
         System.out.println(version);
         System.out.println(serialNumber);
+
+        return null;
+    }
+
+    private static ParsedTransactionData parseDevicePropValue (CompletedPTPTransaction transaction) {
+        PTPInStream transactionData = transaction.getTransactionData();
+        PTPPacketCmdRequest initiatingPacket = transaction.getInitiatingPacket();
+
+        int devicePropCode = initiatingPacket.getParameters().get(0);
+        int devicePropValue = transactionData.readUInt16();
+
+
+        System.out.println("DEVICEPROPVALUE");
 
         return null;
     }

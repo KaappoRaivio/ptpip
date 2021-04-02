@@ -4,13 +4,13 @@ import kaappoptpip.packet.PTPPacketType;
 
 import java.util.Arrays;
 
-public class PTPTPacketInitAcknowledgement extends PTPPacketIn {
+public class PTPTPacketInitCommandAcknowledgement extends PTPPacketIn {
     private int connectionNumber;
     private byte[] guid;
     private String hostName;
     private String version;
 
-    protected PTPTPacketInitAcknowledgement(PTPInStream content) {
+    protected PTPTPacketInitCommandAcknowledgement(PTPInStream content) {
         super(PTPPacketType.INIT_COMMAND_ACKNOWLEDGEMENT, content);
         connectionNumber = content.readUInt32();
         guid = content.readBytes(16);

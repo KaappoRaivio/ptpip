@@ -25,10 +25,8 @@ abstract public class PTPPacketOut implements Writeable {
 
     @Override
     public void writeTo(OutputStream stream) {
-        System.out.println("writing");
-        System.out.println("Length " + payload.getSize());
-        new PTPDataType.UInt32t(payload.getSize() + 8).writeTo(stream);
-        new PTPDataType.UInt32t(type.getPayload()).writeTo(stream);
+        new PTPDataTypes.UInt32t(payload.getSize() + 8).writeTo(stream);
+        new PTPDataTypes.UInt32t(type.getPayload()).writeTo(stream);
         payload.writeTo(stream);
     }
 
@@ -40,5 +38,13 @@ abstract public class PTPPacketOut implements Writeable {
         packets.add(new PTPPacketOutEndData(transactionID, data));
 
         return packets;
+    }
+
+    public PTPPacketType getPacketType() {
+        return type;
+    }
+
+    public int getTransactionID() {
+        return -1;
     }
 }

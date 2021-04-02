@@ -8,6 +8,7 @@ abstract public class PTPDataPacketIn extends PTPPacketIn {
     }
 
     abstract public long getAmountOfDataBytesInPacket ();
+    @Override
     abstract public int getTransactionID ();
     public abstract byte[] getData();
 }

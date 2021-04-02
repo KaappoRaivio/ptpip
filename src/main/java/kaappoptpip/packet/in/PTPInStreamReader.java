@@ -1,5 +1,7 @@
 package kaappoptpip.packet.in;
 
+import kaappoptpip.misc.ByteUtils;
+
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -15,7 +17,7 @@ public class PTPInStreamReader extends Thread {
     private ByteArrayOutputStream buffer;
     private volatile List<PTPInStream> packets;
 
-    public PTPInStreamReader(InputStream inputStream) {
+    public PTPInStreamReader (InputStream inputStream) {
         this.inputStream = new PTPInStream(inputStream);
         buffer = new ByteArrayOutputStream();
         packets = new ArrayList<>();
@@ -29,20 +31,18 @@ public class PTPInStreamReader extends Thread {
         while (run) {
             if (!inPacket) {
                     packetLength = inputStream.readUInt32();
-                    System.out.println("<== INCOMING PACKET, " + packetLength + " bytes long!");
                     inPacket = true;
             } else {
-                System.out.println("Reading content now");
                 ByteBuffer buffer = ByteBuffer.allocate(packetLength - 4);
                 buffer.order(ByteOrder.LITTLE_ENDIAN);
 
-                buffer.put(inputStream.readBytes(packetLength - 4));
-                packets.add(new PTPInStream(new ByteArrayInputStream(buffer.array())));
+                byte[] data = inputStream.readBytes(packetLength - 4);
+                System.out.println("<== INCOMING PACKET " + ByteUtils.bytesToHex(ByteUtils.toLittleEndian(packetLength)) + ByteUtils.bytesToHex(data));
+                packets.add(new PTPInStream(new ByteArrayInputStream(data)));
 
                 synchronized (lock) {
                     lock.notifyAll();
                 }
-                System.out.println("read packet!");
 
                 inPacket = false;
                 packetLength = 0;

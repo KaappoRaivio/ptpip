@@ -1,13 +1,16 @@
 package kaappoptpip.packet;
 
+import kaappoptpip.data.PTPDataType;
+import kaappoptpip.misc.ByteUtils;
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.stream.IntStream;
 
-public class PTPDataType {
+public class PTPDataTypes {
 
-    public static class UInt64t implements Writeable {
+    public static class UInt64t implements Writeable, PTPDataType {
         private final long value;
         public UInt64t(long value) {
             this.value = value;
@@ -16,14 +19,14 @@ public class PTPDataType {
         @Override
         public void writeTo(OutputStream stream) {
             try {
-                stream.write(toLittleEndian(value));
+                stream.write(ByteUtils.toLittleEndian(value));
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
     }
 
-    public static class UInt32t implements Writeable {
+    public static class UInt32t implements Writeable, PTPDataType {
         private final int value;
 
         public UInt32t(int value) {
@@ -32,7 +35,7 @@ public class PTPDataType {
 
         @Override
         public void writeTo(OutputStream stream) {
-            var bytes = toLittleEndian(value);
+            var bytes = ByteUtils.toLittleEndian(value);
             try {
                 stream.write(Arrays.copyOfRange(bytes, 0, 4));
             } catch (IOException e) {
@@ -43,7 +46,7 @@ public class PTPDataType {
 
 
 
-    public static class UInt16t implements Writeable {
+    public static class UInt16t implements Writeable, PTPDataType {
         private final int value;
 
         public UInt16t(int value) {
@@ -53,7 +56,7 @@ public class PTPDataType {
 
         @Override
         public void writeTo(OutputStream stream) {
-            var bytes = toLittleEndian(value);
+            var bytes = ByteUtils.toLittleEndian(value);
             try {
                 stream.write(Arrays.copyOfRange(bytes, 0, 2));
             } catch (IOException e) {
@@ -62,7 +65,7 @@ public class PTPDataType {
         }
     }
 
-    public static class UInt8t implements Writeable {
+    public static class UInt8t implements Writeable, PTPDataType {
         private final int value;
 
         public UInt8t(int value) {
@@ -72,7 +75,7 @@ public class PTPDataType {
 
         @Override
         public void writeTo(OutputStream stream) {
-            var bytes = toLittleEndian(value);
+            var bytes = ByteUtils.toLittleEndian(value);
             try {
                 stream.write(Arrays.copyOfRange(bytes, 0, 1));
             } catch (IOException e) {
@@ -81,7 +84,7 @@ public class PTPDataType {
         }
     }
 
-    public static class WChar implements Writeable {
+    public static class WChar implements Writeable, PTPDataType {
         private final String value;
 
         public WChar(String value) {
@@ -98,16 +101,5 @@ public class PTPDataType {
         }
     }
 
-    private static byte[] toLittleEndian (long data) {
-        byte byte1 = (byte) (data >> 0 & 0xff);
-        byte byte2 = (byte) (data >> 8 & 0xff);
-        byte byte3 = (byte) (data >> 16 & 0xff);
-        byte byte4 = (byte) (data >> 24 & 0xff);
-        byte byte5 = (byte) (data >> 32 & 0xff);
-        byte byte6 = (byte) (data >> 40 & 0xff);
-        byte byte7 = (byte) (data >> 48 & 0xff);
-        byte byte8 = (byte) (data >> 56 & 0xff);
 
-        return new byte[]{byte1, byte2, byte3, byte4, byte5, byte6, byte7, byte8};
-    }
 }

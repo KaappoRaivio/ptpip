@@ -22,27 +22,30 @@ public class PTPDataBuffer implements PTPOutStream {
 
     @Override
     public void writeUInt64(long data) {
-        new PTPDataType.UInt64t(data).writeTo(outputStream);
+        new PTPDataTypes.UInt64t(data).writeTo(outputStream);
+    }
+    public void writeUInt64(long data) {
+        new PTPDataTypes.UInt64t(data).writeTo(outputStream);
     }
 
     @Override
     public void writeUInt32(int data) {
-        new PTPDataType.UInt32t(data).writeTo(outputStream);
+        new PTPDataTypes.UInt32t(data).writeTo(outputStream);
     }
 
     @Override
     public void writeUInt16(int data) {
-        new PTPDataType.UInt16t(data).writeTo(outputStream);
+        new PTPDataTypes.UInt16t(data).writeTo(outputStream);
     }
 
     @Override
     public void writeUInt8(int data) {
-        new PTPDataType.UInt8t(data).writeTo(outputStream);
+        new PTPDataTypes.UInt8t(data).writeTo(outputStream);
     }
 
     @Override
     public void writeWChar(String data) {
-        new PTPDataType.WChar(data).writeTo(outputStream);
+        new PTPDataTypes.WChar(data).writeTo(outputStream);
     }
 
     @Override
@@ -55,7 +58,7 @@ public class PTPDataBuffer implements PTPOutStream {
     }
 
     @Override
-    public void writeShorts(short[] shorts) {
+    public void writeShortsAsBytes(short[] shorts) {
         IntStream.range(0, shorts.length).map(i -> shorts[i]).forEach(this::writeUInt8);
     }
 

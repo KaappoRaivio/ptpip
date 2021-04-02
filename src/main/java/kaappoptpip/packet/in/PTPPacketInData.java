@@ -21,7 +21,7 @@ public class PTPPacketInData extends PTPDataPacketIn {
     }
 
     @Override
-    public int getTransactionID() {
+    public int getTransactionID () {
         return transactionID;
     }
 
@@ -34,4 +34,5 @@ public class PTPPacketInData extends PTPDataPacketIn {
     public int size() {
         throw new RuntimeException("Not implemented!");
     }
+
 }
