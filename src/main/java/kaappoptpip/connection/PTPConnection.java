@@ -62,13 +62,16 @@ public class PTPConnection {
             synchronized (connectionIn.lock) {
                 if (block) {
                     try {
-                        connectionIn.lock.wait();
+                        connectionIn.lock.wait(5000);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
                 }
 
                 List<PTPPacketIn> packets = connectionIn.getPackets().stream().map(packet -> PTPPacketIn.getPacket(packet.readUInt32(), packet)).collect(Collectors.toList());
+                if (packets.size() == 0) {
+                    throw new RuntimeException("Connection timed out!");
+                }
 
                 for (PTPPacketIn packet : packets) {
                     if (packet.startsTransactionResponse()) {

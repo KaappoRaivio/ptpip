@@ -24,7 +24,7 @@ public class PTPInStreamReader extends Thread {
     }
 
     @Override
-    public void run() {
+    public void run () {
         boolean inPacket = false;
 
         int packetLength = 0;
