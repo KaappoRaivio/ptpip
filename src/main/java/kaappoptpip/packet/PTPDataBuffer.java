@@ -16,14 +16,10 @@ public class PTPDataBuffer implements PTPOutStream {
 
     public PTPDataBuffer (int size) {
         this.outputStream = new ByteArrayOutputStream(size);
-//        this.outputStream.
     }
 
 
     @Override
-    public void writeUInt64(long data) {
-        new PTPDataTypes.UInt64t(data).writeTo(outputStream);
-    }
     public void writeUInt64(long data) {
         new PTPDataTypes.UInt64t(data).writeTo(outputStream);
     }

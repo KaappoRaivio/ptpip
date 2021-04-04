@@ -36,7 +36,6 @@ public class PTPPacketCmdRequest extends PTPPacketOut {
         payload.writeUInt32(transactionID);
 
 
-        System.out.println("Parameters size: " + parameters.size());
         for (int parameter : parameters) {
             payload.writeUInt32(parameter);
         }

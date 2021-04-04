@@ -8,8 +8,8 @@ import kaappoptpip.packet.in.PTPDataPacketIn;
 import kaappoptpip.packet.in.PTPPacketInStartData;
 import kaappoptpip.packet._out.PTPPacketCmdRequest;
 import kaappoptpip.packet._out.PTPPacketOut;
-import kaappoptpip.transaction.CompletedPTPTransaction;
-import kaappoptpip.transaction.PTPTransactionDataParser;
+import kaappoptpip.transaction.PTPCompletedDataTransfer;
+import kaappoptpip.transaction.PTPCompletedTransaction;
 import kaappoptpip.transaction.PTPTransactionManager;
 
 import java.io.*;
@@ -19,10 +19,11 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class PTPConnection {
-    private Socket socket;
-    private OutputStream connectionOut;
-    private PTPInStreamReader connectionIn;
-    private PTPTransactionManager transactionManager;
+    private final Socket socket;
+    private final OutputStream connectionOut;
+    private final PTPInStreamReader connectionIn;
+    private final PTPTransactionManager transactionManager;
+
 
     public PTPConnection(String cameraAddress) throws IOException {
         socket = new Socket(cameraAddress, 15740);
@@ -51,11 +52,11 @@ public class PTPConnection {
         }
     }
 
-    public List<PTPPacketIn> getPackets () {
-        return getPackets(true, new PTPPacketInMatcher());
-    }
+//    public List<PTPPacketIn> getPackets () {
+//        return getPackets(true, new PTPPacketInMatcher());
+//    }
 
-    public List<PTPPacketIn> getPackets (boolean block, PTPPacketInMatcher matcher) {
+    public PTPCompletedTransaction getPackets (boolean block, PTPPacketInMatcher matcher) {
         List<PTPPacketIn> buffer = new ArrayList<>();
         while (true) {
             synchronized (connectionIn.lock) {
@@ -71,38 +72,30 @@ public class PTPConnection {
 
                 for (PTPPacketIn packet : packets) {
                     if (packet.startsTransactionResponse()) {
-                        System.out.println("Starting transaction");
                         PTPPacketInStartData ptpPacketInStartData = (PTPPacketInStartData) packet;
                         transactionManager.addDataToTransaction(ptpPacketInStartData.getTransactionID(), ptpPacketInStartData);
                     } else if (packet.isPartOfTransaction()) {
                         PTPDataPacketIn cast = (PTPDataPacketIn) packet;
                         transactionManager.addDataToTransaction(cast.getTransactionID(), cast);
                     } else if (packet.endsTransactionResponse()) {
-                        System.out.println("Ending transaction");
                         PTPDataPacketIn cast = (PTPDataPacketIn) packet;
                         transactionManager.addDataToTransaction(cast.getTransactionID(), cast);
-
-                        if (transactionManager.haveTransactionsCompleted()) {
-                            System.out.println("COMPLETED TRANSACTION!!!!!!!!!!!!!!!!!!!!");
-                            List<CompletedPTPTransaction> completeTransactions = transactionManager.getCompleteTransactions();
-                            completeTransactions.forEach(PTPTransactionDataParser::parseTransactionData);
-                        }
                     }
                 }
 
                 buffer.addAll(packets);
 
-                boolean foundMatchingPacket = false;
-                for (PTPPacketIn packetIn : packets) {
-                    if (matcher.matches(packetIn)) {
-                        foundMatchingPacket = true;
-                        break;
-                    }
-                }
+                PTPPacketIn matchingPacket = buffer.stream().filter(matcher::matches).findFirst().orElse(null);
 
-                if (foundMatchingPacket) break;
+                if (matchingPacket != null) {
+                    if (transactionManager.hasCompletedTransactionFor(matchingPacket)) {
+                        return new PTPCompletedTransaction(matchingPacket, transactionManager.getCompleteTransactionFor(matchingPacket), buffer);
+                    } else {
+                        return new PTPCompletedTransaction(matchingPacket, null, buffer);
+                    }
+                };
             }
         }
-        return buffer;
+
     }
 }

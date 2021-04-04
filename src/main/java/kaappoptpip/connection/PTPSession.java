@@ -2,30 +2,38 @@ package kaappoptpip.connection;
 
 import kaappoptpip.packet.PTPPacketInMatcher;
 import kaappoptpip.packet.PTPPacketType;
-import kaappoptpip.packet._out.PTPPacketEventInit;
-import kaappoptpip.packet._out.PTPPacketInit;
-import kaappoptpip.packet._out.PTPPacketOut;
+import kaappoptpip.packet._out.*;
 import kaappoptpip.packet.in.PTPPacketIn;
 import kaappoptpip.packet.in.PTPTPacketInitCommandAcknowledgement;
+import kaappoptpip.transaction.PTPCompletedTransaction;
 
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.List;
 
-public class PTPSession implements Closeable {
+public class PTPSession extends Thread implements Closeable {
     private PTPConnection commandConnection;
     private PTPConnection eventConnection;
+    private boolean run = true;
 
     public PTPSession (String cameraAddress) throws IOException {
+        this(cameraAddress, true);
+    }
+
+    public PTPSession (String cameraAddress, boolean keepAlive) throws IOException {
         commandConnection = new PTPConnection(cameraAddress);
+
+
         int connectionNumber = initializeCommandConnection();
-
         eventConnection = new PTPConnection(cameraAddress);
-        eventConnection.writePacket(new PTPPacketEventInit(connectionNumber));
 
-        PTPPacketInMatcher matcher = new PTPPacketInMatcher().packetType(PTPPacketType.INIT_EVENT_ACKNOWLEDGEMENT);
-        List<PTPPacketIn> packets = eventConnection.getPackets(true, matcher);
-        System.out.println(packets);
+        System.out.println("Moi");
+        sendEvent(new PTPPacketEventInit(connectionNumber));
+
+        sendCommand(new PTPPacketCmdRequest(PTPPacketCmdRequest.OpCodes.OPEN_SESSION, 1, List.of(1)));
+        if (keepAlive) {
+            start();
+        }
     }
 
     private int initializeCommandConnection () throws IOException {
@@ -33,19 +41,54 @@ public class PTPSession implements Closeable {
         commandConnection.writePacket(initPacket);
 
         PTPPacketInMatcher matcher = new PTPPacketInMatcher().packetType(PTPPacketType.INIT_COMMAND_ACKNOWLEDGEMENT);
-        List<PTPPacketIn> packets = commandConnection.getPackets(true, matcher);
-        PTPTPacketInitCommandAcknowledgement response = (PTPTPacketInitCommandAcknowledgement) packets.stream().filter(matcher::matches).findFirst().orElseThrow();
+        PTPCompletedTransaction transaction = commandConnection.getPackets(true, matcher);
+        PTPTPacketInitCommandAcknowledgement response = (PTPTPacketInitCommandAcknowledgement) transaction.getResponsePacket();
+        System.out.println(response);
 
         return response.getConnectionNumber();
     }
 
-    public List<PTPPacketIn> sendCommand (PTPPacketOut packet) {
+    public PTPCompletedTransaction sendCommand (PTPPacketOut packet) {
         commandConnection.writePacket(packet);
         return commandConnection.getPackets(true, new PTPPacketInMatcher().packetTypes(PTPPacketType.getPossibleResponseTypes(packet.getPacketType())).transactionID(packet.getTransactionID()));
     }
 
-    @Override
-    public void close() throws IOException {
+    public PTPCompletedTransaction sendEvent (PTPPacketOut packet) {
+        eventConnection.writePacket(packet);
+        return eventConnection.getPackets(true, new PTPPacketInMatcher().packetTypes(PTPPacketType.getPossibleResponseTypes(packet.getPacketType())).transactionID(packet.getTransactionID()));
+    }
 
+    @Override
+    public void run () {
+        while (run) {
+            PTPCompletedTransaction transaction = sendEvent(new PTPPacketPing());
+            if (transaction.getResponsePacket().getPacketType() != PTPPacketType.PONG) {
+                throw new RuntimeException("Ping returned " + transaction.getResponsePacket() + ", not PONG!");
+            }
+
+            try {
+                Thread.sleep(5000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    @Override
+    public void close () throws IOException {
+        System.out.println("Closing!");
+        run = false;
+        interrupt();
+
+    }
+
+    public void doNothing () {
+        synchronized (this) {
+            try {
+                wait();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }

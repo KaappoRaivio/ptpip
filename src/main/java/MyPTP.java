@@ -3,6 +3,8 @@ import kaappoptpip.packet.PTPPacketInMatcher;
 import kaappoptpip.packet.PTPPacketType;
 import kaappoptpip.packet._out.*;
 import kaappoptpip.packet.in.PTPPacketIn;
+import kaappoptpip.transaction.PTPCompletedTransaction;
+import kaappoptpip.transaction.PTPTransactionDataParser;
 
 import java.io.*;
 import java.util.List;
@@ -31,10 +33,29 @@ public class MyPTP {
 //        for (PTPPacketIn response : responses) {
 //            System.out.println(response);
 //        }
-        PTPSession session = new PTPSession("192.168.2.1");
-        System.out.println(session.sendCommand(new PTPPacketCmdRequest(PTPPacketCmdRequest.OpCodes.GET_DEVICE_INFO, 0)));
-        System.out.println(session.sendCommand(new PTPPacketCmdRequest(PTPPacketCmdRequest.OpCodes.OPEN_SESSION, 1, List.of(1))));
-        System.out.println(session.sendCommand(new PTPPacketCmdRequest(PTPPacketCmdRequest.OpCodes.GET_DEVICE_PROP_VALUE, 2, List.of(0x500b))));
+        try (PTPSession session = new PTPSession("192.168.2.1", true)) {
+            System.out.println(PTPTransactionDataParser.parseTransactionData(session.sendCommand(new PTPPacketCmdRequest(PTPPacketCmdRequest.OpCodes.GET_DEVICE_PROP_VALUE, 2, List.of(0x5007))).getTransactionData()));
+            System.out.println(PTPTransactionDataParser.parseTransactionData(session.sendCommand(new PTPPacketCmdRequest(PTPPacketCmdRequest.OpCodes.GET_DEVICE_PROP_VALUE, 2, List.of(0x5008))).getTransactionData()));
+            System.out.println(PTPTransactionDataParser.parseTransactionData(session.sendCommand(new PTPPacketCmdRequest(PTPPacketCmdRequest.OpCodes.GET_DEVICE_PROP_VALUE, 2, List.of(0x5001))).getTransactionData()));
+            System.out.println(PTPTransactionDataParser.parseTransactionData(session.sendCommand(new PTPPacketCmdRequest(PTPPacketCmdRequest.OpCodes.GET_DEVICE_PROP_VALUE, 2, List.of(0x500C))).getTransactionData()));
+            System.out.println(PTPTransactionDataParser.parseTransactionData(session.sendCommand(new PTPPacketCmdRequest(PTPPacketCmdRequest.OpCodes.GET_DEVICE_PROP_VALUE, 2, List.of(0x500D))).getTransactionData()));
+            System.out.println(PTPTransactionDataParser.parseTransactionData(session.sendCommand(new PTPPacketCmdRequest(PTPPacketCmdRequest.OpCodes.GET_DEVICE_PROP_VALUE, 2, List.of(0x500B))).getTransactionData()));
+            session.doNothing();
+        }
+//        PTPCompletedTransaction response = session.sendCommand(new PTPPacketCmdRequest(PTPPacketCmdRequest.OpCodes.GET_DEVICE_INFO, 0));
+//        System.out.println("Transaction data: " + response.getTransactionData());
+//        System.out.println(PTPTransactionDataParser.parseTransactionData(response.getTransactionData()));
+//        System.out.println(response.getTransactionData());
+
+//        PTPCompletedTransaction sessionResponse = session.sendCommand(new PTPPacketCmdRequest(PTPPacketCmdRequest.OpCodes.OPEN_SESSION, 1, List.of(1)));
+//        System.out.println(sessionResponse.getResponsePacket());
+//        System.out.println(PTPTransactionDataParser.parseTransactionData(session.sendCommand(new PTPPacketCmdRequest(PTPPacketCmdRequest.OpCodes.GET_DEVICE_PROP_VALUE, 2, List.of(0x5007))).getTransactionData()));
+//        System.out.println(PTPTransactionDataParser.parseTransactionData(session.sendCommand(new PTPPacketCmdRequest(PTPPacketCmdRequest.OpCodes.GET_DEVICE_PROP_VALUE, 2, List.of(0x5008))).getTransactionData()));
+//        System.out.println(session.sendCommand(new PTPPacketCmdRequest(PTPPacketCmdRequest.OpCodes.GET_DEVICE_PROP_VALUE, 3, List.of(0x5007))));
+//        System.out.println(session.sendCommand(new PTPPacketCmdRequest(PTPPacketCmdRequest.OpCodes.GET_DEVICE_PROP_VALUE, 4, List.of(0x5008))));
+//        System.out.println(session.sendCommand(new PTPPacketCmdRequest(PTPPacketCmdRequest.OpCodes.GET_DEVICE_PROP_VALUE, 5, List.of(0x5001))));
+//        System.out.println(session.sendCommand(new PTPPacketCmdRequest(PTPPacketCmdRequest.OpCodes.GET_DEVICE_PROP_VALUE, 6, List.of(0x500C))));
+//        System.out.println(session.sendCommand(new PTPPacketCmdRequest(PTPPacketCmdRequest.OpCodes.GET_DEVICE_PROP_VALUE, 7, List.of(0x500D))));
 
 
 //        System.out.println(session.sendCommand(new PTPPacketCmdRequest(PTPPacketCmdRequest.OpCodes.START_LIVE_VIEW, 2)));

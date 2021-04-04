@@ -1,23 +1,22 @@
 package kaappoptpip.transaction;
 
 import kaappoptpip.packet.in.PTPDataPacketIn;
+import kaappoptpip.packet.in.PTPPacketIn;
 import kaappoptpip.packet.in.PTPPacketInStartData;
 import kaappoptpip.packet._out.PTPPacketCmdRequest;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class PTPTransactionManager {
     private final Map<Integer, PTPTransaction> transactions;
-    private List<CompletedPTPTransaction> completeTransactions;
+    private Set<PTPCompletedDataTransfer> completeTransactions;
 
 //    public static final Object lock = new Object();
 
     public PTPTransactionManager () {
         transactions = new HashMap<>();
-        completeTransactions = new ArrayList<>();
+        completeTransactions = new HashSet<>();
     }
 
     public void startTransaction (int transactionID, PTPPacketCmdRequest initiatingPacket) {
@@ -42,9 +41,34 @@ public class PTPTransactionManager {
         return completeTransactions.size() > 0;
     }
 
-    public List<CompletedPTPTransaction> getCompleteTransactions () {
-        var toReturn = completeTransactions;
-        completeTransactions = new ArrayList<>();
-        return toReturn;
+    public Set<PTPCompletedDataTransfer> getCompleteTransactions () {
+        return completeTransactions;
+    }
+
+    public boolean hasCompletedTransactionFor (PTPPacketIn packet) {
+        if (packet == null) return false;
+        return completeTransactions.stream().map(PTPCompletedDataTransfer::getTransactionID).anyMatch(id -> packet.getTransactionID() == id);
+    }
+
+    public PTPCompletedDataTransfer getCompleteTransactionFor (PTPPacketIn packet) {
+        Set<PTPCompletedDataTransfer> eligibleTransactions = completeTransactions
+                .stream()
+                .filter(transaction -> transaction.getTransactionID() == packet.getTransactionID())
+                .collect(Collectors.toSet());
+
+        if (eligibleTransactions.size() != 1) {
+            throw new RuntimeException("Got wrong amount of completedTransactions for packet " + packet + "! Expected only one, got " + eligibleTransactions + "!");
+        } else {
+            PTPCompletedDataTransfer transactionResult = eligibleTransactions.stream().findFirst().orElseThrow();
+            completeTransactions.remove(transactionResult);
+            return transactionResult;
+        }
+    }
+
+    @Override
+    public String toString () {
+        return "PTPTransactionManager{" +
+                "completeTransactions=" + completeTransactions +
+                '}';
     }
 }

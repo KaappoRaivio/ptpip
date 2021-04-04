@@ -1,12 +1,12 @@
 package kaappoptpip.transaction;
 
+import kaappoptpip.data.DeviceProp;
+import kaappoptpip.data.DevicePropSet;
 import kaappoptpip.packet.in.PTPInStream;
 import kaappoptpip.packet._out.PTPPacketCmdRequest;
 
-import java.util.List;
-
 public class PTPTransactionDataParser {
-    public static ParsedTransactionData parseTransactionData (CompletedPTPTransaction transaction) {
+    public static ParsedTransactionData parseTransactionData (PTPCompletedDataTransfer transaction) {
         int opCode = transaction.getInitiatingPacket().getOperationCode();
 
         switch (opCode) {
@@ -19,59 +19,48 @@ public class PTPTransactionDataParser {
         }
     }
 
-    private static ParsedTransactionData parseDeviceInfoDataset (CompletedPTPTransaction transaction) {
+    private static ParsedTransactionData parseDeviceInfoDataset (PTPCompletedDataTransfer transaction) {
         PTPInStream transactionData = transaction.getTransactionData();
 
         System.out.println("DEVICEINFORDATASET: ");
-        int standardVersion = transactionData.readUInt16();
-        int vendorExtensionID = transactionData.readUInt32();
-        int vendorExtensionVersion = transactionData.readUInt16();
-        String vendorExtensionString = transactionData.readWChar(true);
-        int functionalMode = transactionData.readUInt16();
-
-        System.out.println(standardVersion);
-        System.out.println(vendorExtensionID);
-        System.out.println(vendorExtensionVersion);
-        System.out.println(vendorExtensionString);
-        System.out.println(functionalMode);
-
-        List<Integer> operationsSupported = transactionData.readArrayOfUInt16();
-        List<Integer> eventsSupported = transactionData.readArrayOfUInt16();
-        List<Integer> devicePropertiesSupported = transactionData.readArrayOfUInt16();
-        List<Integer> captureFormatsSupported = transactionData.readArrayOfUInt16();
-        List<Integer> imageFormatsSupported = transactionData.readArrayOfUInt16();
-
-        System.out.println(operationsSupported);
-        System.out.println(eventsSupported);
-        System.out.println(devicePropertiesSupported + ", " + devicePropertiesSupported.size());
-        System.out.println(captureFormatsSupported);
-        System.out.println(imageFormatsSupported);
 
 
-        String manufacturer = transactionData.readWChar(true);
-        String model = transactionData.readWChar(true);
-        String version = transactionData.readWChar(true);
-        String serialNumber = transactionData.readWChar(true);
+        ParsedTransactionData data = new ParsedTransactionData();
 
+        data.add("standardVersion", transactionData.readUInt16());
+        data.add("vendorExtensionID", transactionData.readUInt32());
+        data.add("vendorExtensionVersion", transactionData.readUInt16());
+        data.add("vendorExtensionString", transactionData.readWChar(true));
+        data.add("functionalMode", transactionData.readUInt16());
+        data.add("operationsSupported", transactionData.readArrayOfUInt16());
+        data.add("eventSupported", transactionData.readArrayOfUInt16());
+        data.add("devicePropertiesSupported", transactionData.readArrayOfUInt16());
+        data.add("captureFormatsSupported", transactionData.readArrayOfUInt16());
+        data.add("imageFormatsSupported", transactionData.readArrayOfUInt16());
+        data.add("manufacturer", transactionData.readWChar(true));
+        data.add("model", transactionData.readWChar(true));
+        data.add("version", transactionData.readWChar(true));
+        data.add("serialNumber", transactionData.readWChar(true));
 
-        System.out.println(manufacturer);
-        System.out.println(model);
-        System.out.println(version);
-        System.out.println(serialNumber);
-
-        return null;
+        System.out.println(data);
+        return data;
     }
 
-    private static ParsedTransactionData parseDevicePropValue (CompletedPTPTransaction transaction) {
+    private static ParsedTransactionData parseDevicePropValue (PTPCompletedDataTransfer transaction) {
         PTPInStream transactionData = transaction.getTransactionData();
         PTPPacketCmdRequest initiatingPacket = transaction.getInitiatingPacket();
 
         int devicePropCode = initiatingPacket.getParameters().get(0);
-        int devicePropValue = transactionData.readUInt16();
 
+        DeviceProp<?> prop = DevicePropSet.DEFAULT_PROPSET.getProp(devicePropCode);
 
-        System.out.println("DEVICEPROPVALUE");
+        String devicePropValueString = prop.parseDataString(transactionData);
+//        int devicePropValue = transactionData.readUInt16();
 
-        return null;
+        ParsedTransactionData data = new ParsedTransactionData();
+        data.add("prop", prop);
+        data.add("value", devicePropValueString);
+
+        return data;
     }
 }

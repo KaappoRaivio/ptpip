@@ -52,7 +52,7 @@ public class PTPTransaction {
         return amountOfBytesLeft == 0;
     }
 
-    public CompletedPTPTransaction getTransactionData () {
+    public PTPCompletedDataTransfer getTransactionData () {
         if (!isComplete()) throw new RuntimeException("Cannot get data of an incomplete transaction!");
 
         ByteBuffer data = ByteBuffer.allocate(Math.toIntExact(dataSize));
@@ -61,6 +61,6 @@ public class PTPTransaction {
             data.put(packet.getData());
         }
 
-        return new CompletedPTPTransaction(transactionID, new PTPInStream(new ByteArrayInputStream(data.array())), initiatingPacket);
+        return new PTPCompletedDataTransfer(transactionID, new PTPInStream(new ByteArrayInputStream(data.array())), initiatingPacket);
     }
 }
