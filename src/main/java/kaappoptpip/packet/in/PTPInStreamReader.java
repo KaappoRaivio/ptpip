@@ -10,6 +10,8 @@ import java.util.List;
 
 public class PTPInStreamReader extends Thread {
     private PTPInStream inputStream;
+    private String name;
+    private boolean debug;
     private boolean run = true;
 
     public final Object lock = new Object();
@@ -18,7 +20,12 @@ public class PTPInStreamReader extends Thread {
     private volatile List<PTPInStream> packets;
 
     public PTPInStreamReader (InputStream inputStream) {
+        this(inputStream, "");
+    }
+
+    public PTPInStreamReader (InputStream inputStream, String name) {
         this.inputStream = new PTPInStream(inputStream);
+        this.name = name;
         buffer = new ByteArrayOutputStream();
         packets = new ArrayList<>();
     }

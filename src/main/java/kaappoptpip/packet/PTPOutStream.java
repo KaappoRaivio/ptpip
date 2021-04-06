@@ -13,8 +13,10 @@ public interface PTPOutStream extends Writeable {
         writeWChar(String.valueOf(data));
     }
 
+    void clear ();
     void writeBytes(byte[] bytes);
     void writeShortsAsBytes(short[] shorts);
+    byte[] toBytes ();
 
     int getSize ();
 

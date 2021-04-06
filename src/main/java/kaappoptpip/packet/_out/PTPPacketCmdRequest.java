@@ -6,7 +6,7 @@ import java.util.List;
 
 public class PTPPacketCmdRequest extends PTPPacketOut {
     private final int operationCode;
-    private final int transactionID;
+    private int transactionID;
     private List<Integer> parameters;
 
     public static class OpCodes {
@@ -31,6 +31,13 @@ public class PTPPacketCmdRequest extends PTPPacketOut {
         this.operationCode = operationCode;
         this.transactionID = transactionID;
         this.parameters = parameters;
+
+        rewrite();
+    }
+
+    private void rewrite () {
+        payload.clear();
+
         payload.writeUInt32(dataPhaseInfo);
         payload.writeUInt16(operationCode);
         payload.writeUInt32(transactionID);
@@ -49,6 +56,17 @@ public class PTPPacketCmdRequest extends PTPPacketOut {
     @Override
     public int getTransactionID () {
         return transactionID;
+    }
+
+    @Override
+    public void setTransactionId (int transactionID) {
+        this.transactionID = transactionID;
+        rewrite();
+    }
+
+    @Override
+    public boolean hasTransactionId () {
+        return true;
     }
 
     public int getOperationCode () {

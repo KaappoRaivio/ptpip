@@ -59,7 +59,7 @@ public class DeviceProp<T> {
     @Override
     public String toString () {
         return "DeviceProp{" +
-                "propCode=" + propCode +
+                "propCode=0x" + Integer.toHexString(propCode) +
                 ", dataType=" + dataType +
                 ", name='" + name + '\'' +
                 ", readOnly=" + readOnly +

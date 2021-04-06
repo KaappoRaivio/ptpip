@@ -52,17 +52,15 @@ public class PTPConnection {
         }
     }
 
-//    public List<PTPPacketIn> getPackets () {
-//        return getPackets(true, new PTPPacketInMatcher());
-//    }
-
     public PTPCompletedTransaction getPackets (boolean block, PTPPacketInMatcher matcher) {
         List<PTPPacketIn> buffer = new ArrayList<>();
+
+        int retries = 0;
         while (true) {
             synchronized (connectionIn.lock) {
                 if (block) {
                     try {
-                        connectionIn.lock.wait(5000);
+                        connectionIn.lock.wait(6000);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
@@ -70,7 +68,11 @@ public class PTPConnection {
 
                 List<PTPPacketIn> packets = connectionIn.getPackets().stream().map(packet -> PTPPacketIn.getPacket(packet.readUInt32(), packet)).collect(Collectors.toList());
                 if (packets.size() == 0) {
-                    throw new RuntimeException("Connection timed out!");
+                    if (retries++ > 5) {
+                        throw new RuntimeException("Connection timed out!");
+                    } else {
+                        System.out.println("retrying!");
+                    }
                 }
 
                 for (PTPPacketIn packet : packets) {

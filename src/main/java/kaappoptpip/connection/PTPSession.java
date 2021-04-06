@@ -1,9 +1,9 @@
 package kaappoptpip.connection;
 
+import kaappoptpip.PTPRequestOut;
 import kaappoptpip.packet.PTPPacketInMatcher;
 import kaappoptpip.packet.PTPPacketType;
 import kaappoptpip.packet._out.*;
-import kaappoptpip.packet.in.PTPPacketIn;
 import kaappoptpip.packet.in.PTPTPacketInitCommandAcknowledgement;
 import kaappoptpip.transaction.PTPCompletedTransaction;
 
@@ -16,6 +16,9 @@ public class PTPSession extends Thread implements Closeable {
     private PTPConnection eventConnection;
     private boolean run = true;
 
+    private int commandTransactionID = 1;
+    private int eventTransactionID = 1;
+
     public PTPSession (String cameraAddress) throws IOException {
         this(cameraAddress, true);
     }
@@ -26,11 +29,9 @@ public class PTPSession extends Thread implements Closeable {
 
         int connectionNumber = initializeCommandConnection();
         eventConnection = new PTPConnection(cameraAddress);
-
-        System.out.println("Moi");
         sendEvent(new PTPPacketEventInit(connectionNumber));
 
-        sendCommand(new PTPPacketCmdRequest(PTPPacketCmdRequest.OpCodes.OPEN_SESSION, 1, List.of(1)));
+        sendCommand(new PTPPacketCmdRequest(PTPPacketCmdRequest.OpCodes.OPEN_SESSION, commandTransactionID, List.of(1)));
         if (keepAlive) {
             start();
         }
@@ -38,24 +39,58 @@ public class PTPSession extends Thread implements Closeable {
 
     private int initializeCommandConnection () throws IOException {
         PTPPacketInit initPacket = new PTPPacketInit(new short[]{0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, "testi", "1.1");
-        commandConnection.writePacket(initPacket);
 
-        PTPPacketInMatcher matcher = new PTPPacketInMatcher().packetType(PTPPacketType.INIT_COMMAND_ACKNOWLEDGEMENT);
-        PTPCompletedTransaction transaction = commandConnection.getPackets(true, matcher);
+        PTPCompletedTransaction transaction = sendCommand(initPacket);
         PTPTPacketInitCommandAcknowledgement response = (PTPTPacketInitCommandAcknowledgement) transaction.getResponsePacket();
         System.out.println(response);
 
         return response.getConnectionNumber();
     }
 
+
     public PTPCompletedTransaction sendCommand (PTPPacketOut packet) {
-        commandConnection.writePacket(packet);
-        return commandConnection.getPackets(true, new PTPPacketInMatcher().packetTypes(PTPPacketType.getPossibleResponseTypes(packet.getPacketType())).transactionID(packet.getTransactionID()));
+        return sendCommand(new PTPRequestOut(packet));
+    }
+
+    public PTPCompletedTransaction sendCommand (PTPRequestOut request) {
+        if (request.getMainPacket().hasTransactionId()) {
+            this.commandTransactionID++;
+        }
+        int currentTransactionID = this.commandTransactionID;
+        for (PTPPacketOut packet : request.getPacketsToWrite()) {
+            if (packet.hasTransactionId()) {
+                System.out.println("Setting transactionID of " + currentTransactionID + " to packet " + packet + " with existing transactionID of " + packet.getTransactionID());
+                packet.setTransactionId(currentTransactionID);
+            }
+            commandConnection.writePacket(packet);
+        }
+
+        PTPPacketOut mainPacket = request.getMainPacket();
+        return commandConnection.getPackets(true, new PTPPacketInMatcher().packetTypes(PTPPacketType.getPossibleResponseTypes(mainPacket.getPacketType())).transactionID(mainPacket.getTransactionID()));
     }
 
     public PTPCompletedTransaction sendEvent (PTPPacketOut packet) {
-        eventConnection.writePacket(packet);
-        return eventConnection.getPackets(true, new PTPPacketInMatcher().packetTypes(PTPPacketType.getPossibleResponseTypes(packet.getPacketType())).transactionID(packet.getTransactionID()));
+        return sendEvent(new PTPRequestOut(packet));
+    }
+
+    public PTPCompletedTransaction sendEvent (PTPRequestOut request) {
+        if (request.getMainPacket().hasTransactionId()) {
+            this.eventTransactionID++;
+        }
+        int currentTransactionID = this.eventTransactionID;
+        for (PTPPacketOut packet : request.getPacketsToWrite()) {
+            if (packet.hasTransactionId()) {
+                System.out.println("Setting transactionID of " + currentTransactionID + " to packet " + packet + " with existing transactionID of " + packet.getTransactionID());
+                packet.setTransactionId(currentTransactionID);
+            }
+            eventConnection.writePacket(packet);
+        }
+
+        PTPPacketOut mainPacket = request.getMainPacket();
+        return eventConnection.getPackets(true, new PTPPacketInMatcher().packetTypes(PTPPacketType.getPossibleResponseTypes(mainPacket.getPacketType())).transactionID(mainPacket.getTransactionID()));
+//
+//        eventConnection.writePacket(packet);
+//        return eventConnection.getPackets(true, new PTPPacketInMatcher().packetTypes(PTPPacketType.getPossibleResponseTypes(packet.getPacketType())).transactionID(packet.getTransactionID()));
     }
 
     @Override
@@ -77,9 +112,18 @@ public class PTPSession extends Thread implements Closeable {
     @Override
     public void close () throws IOException {
         System.out.println("Closing!");
+        sendCommand(new PTPPacketCmdRequest(PTPPacketCmdRequest.OpCodes.CLOSE_SESSION, 0xCAFEBABE));
         run = false;
         interrupt();
 
+    }
+
+    public void idle (long millis) {
+        try {
+            Thread.sleep(millis);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     public void doNothing () {

@@ -18,6 +18,10 @@ public class PTPDataBuffer implements PTPOutStream {
         this.outputStream = new ByteArrayOutputStream(size);
     }
 
+    @Override
+    public void clear () {
+        outputStream = new ByteArrayOutputStream(0);
+    }
 
     @Override
     public void writeUInt64(long data) {
@@ -56,6 +60,13 @@ public class PTPDataBuffer implements PTPOutStream {
     @Override
     public void writeShortsAsBytes(short[] shorts) {
         IntStream.range(0, shorts.length).map(i -> shorts[i]).forEach(this::writeUInt8);
+    }
+
+    @Override
+    public byte[] toBytes () {
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        writeTo(stream);
+        return stream.toByteArray();
     }
 
     @Override
