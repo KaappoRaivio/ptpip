@@ -4,12 +4,16 @@ import kaappoptpip.PTPRequestOut;
 import kaappoptpip.packet.PTPPacketInMatcher;
 import kaappoptpip.packet.PTPPacketType;
 import kaappoptpip.packet._out.*;
+import kaappoptpip.packet.in.PTPPacketCmdResponse;
 import kaappoptpip.packet.in.PTPTPacketInitCommandAcknowledgement;
 import kaappoptpip.transaction.PTPCompletedTransaction;
+import kaappoptpip.transaction.PTPTransactionDataParser;
+import kaappoptpip.transaction.ParsedTransactionData;
 
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.List;
+import java.util.function.Function;
 
 public class PTPSession extends Thread implements Closeable {
     private PTPConnection commandConnection;
@@ -101,6 +105,10 @@ public class PTPSession extends Thread implements Closeable {
                 throw new RuntimeException("Ping returned " + transaction.getResponsePacket() + ", not PONG!");
             }
 
+//            sendCommand(new PTPPacketCmdRequest(0x90C7, 0xCAFEBABE));
+
+
+
             try {
                 Thread.sleep(5000);
             } catch (InterruptedException e) {
@@ -134,5 +142,46 @@ public class PTPSession extends Thread implements Closeable {
                 e.printStackTrace();
             }
         }
+    }
+
+    public void startLiveView (Function<ParsedTransactionData, Void> onLiveViewFrame) {
+        PTPPacketCmdRequest startLiveViewRequest = new PTPPacketCmdRequest(PTPPacketCmdRequest.OpCodes.START_LIVE_VIEW, 2);
+        sendCommand(startLiveViewRequest);
+
+        PTPPacketCmdRequest deviceReadyRequest = new PTPPacketCmdRequest(PTPPacketCmdRequest.OpCodes.DEVICE_READY, 2);
+
+        PTPPacketCmdResponse response;
+        do {
+            PTPCompletedTransaction transaction = sendCommand(deviceReadyRequest);
+            response = (PTPPacketCmdResponse) transaction.getResponsePacket();
+            System.out.println(response);
+
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        } while (response.getResponseCode() == 0x2019);
+
+        System.out.println("Device ready with code:" + (response.getResponseCode() == 0x2001 ? "OK" : "Fail") + "!");
+
+
+        while (true) {
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            var getLiveViewImageRequest = new PTPPacketCmdRequest(PTPPacketCmdRequest.OpCodes.GET_LIVE_VIEW_IMAGE, 0);
+            PTPCompletedTransaction potentialLiveViewImage = sendCommand(getLiveViewImageRequest);
+
+            PTPPacketCmdResponse potentialImage = (PTPPacketCmdResponse) potentialLiveViewImage.getResponsePacket();
+            System.out.println("Acquired live view frame with code:" + (potentialImage.getResponseCode() == 0x2001 ? "OK" : "Fail") + "!");
+
+            var data = PTPTransactionDataParser.parseTransactionData(potentialLiveViewImage.getTransactionData());
+            onLiveViewFrame.apply(data);
+        }
+//        System.out.println(data.getField("focusarea"));
+
     }
 }

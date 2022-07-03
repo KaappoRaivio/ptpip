@@ -18,6 +18,8 @@ public class PTPPacketCmdRequest extends PTPPacketOut {
         public static final int GET_DEVICE_PROP_VALUE = 0x1015;
         public static final int SET_DEVICE_PROP_VALUE = 0x1016;
         public static final int CLOSE_SESSION = 0x1003;
+        public static final int DEVICE_READY = 0x90C8;
+        public static final int GET_LIVE_VIEW_IMAGE = 0x9203;
     }
 
     private int dataPhaseInfo = 1;

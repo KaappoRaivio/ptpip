@@ -143,6 +143,14 @@ public class PTPInStream {
         return streamLength;
     }
 
+    public int left () {
+        try {
+            return realInputStream.available();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public List<Integer> readArrayOfUInt16() {
         List<Integer> list = new ArrayList<>();
 

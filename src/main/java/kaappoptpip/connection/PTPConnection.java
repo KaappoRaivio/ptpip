@@ -13,6 +13,9 @@ import kaappoptpip.transaction.PTPCompletedTransaction;
 import kaappoptpip.transaction.PTPTransactionManager;
 
 import java.io.*;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,6 +23,7 @@ import java.util.stream.Collectors;
 
 public class PTPConnection {
     private final Socket socket;
+//    private final DatagramSocket socket;
     private final OutputStream connectionOut;
     private final PTPInStreamReader connectionIn;
     private final PTPTransactionManager transactionManager;
@@ -27,6 +31,8 @@ public class PTPConnection {
 
     public PTPConnection(String cameraAddress) throws IOException {
         socket = new Socket(cameraAddress, 15740);
+//        socket = new DatagramSocket(15740);
+//        socket.bind(new InetSocketAddress(cameraAddress, 15740));
         connectionOut = socket.getOutputStream();
         connectionOut.flush();
         InputStream inputStream = socket.getInputStream();

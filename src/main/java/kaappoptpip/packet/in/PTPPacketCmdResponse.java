@@ -5,6 +5,10 @@ import kaappoptpip.packet.PTPPacketType;
 public class PTPPacketCmdResponse extends PTPPacketIn {
     private int streamLength;
 
+    public int getResponseCode() {
+        return responseCode;
+    }
+
     private int responseCode;
     private int transactionID;
 

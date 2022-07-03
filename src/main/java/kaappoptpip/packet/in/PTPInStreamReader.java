@@ -44,7 +44,11 @@ public class PTPInStreamReader extends Thread {
                 buffer.order(ByteOrder.LITTLE_ENDIAN);
 
                 byte[] data = inputStream.readBytes(packetLength - 4);
-                System.out.println("<== INCOMING PACKET " + ByteUtils.bytesToHex(ByteUtils.toLittleEndian(packetLength)) + ByteUtils.bytesToHex(data));
+                String s = ByteUtils.bytesToHex(ByteUtils.toLittleEndian(packetLength)) + ByteUtils.bytesToHex(data);
+                if (s.length() > 500) {
+                    s = "Truncated";
+                }
+                System.out.println("<== INCOMING PACKET " + s);
                 packets.add(new PTPInStream(new ByteArrayInputStream(data)));
 
                 synchronized (lock) {
